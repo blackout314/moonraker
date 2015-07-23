@@ -27,6 +27,15 @@ di esempio
 ```
 
 vorrei aggiungere l'opzione 
+
 * report multipli con data
 
-oppure lo metto di default?
+in questo modo
+
+```
+{
+    "reportName": "name.html"
+}
+```
+
+se nel nome c'è il placeholder {{NOW}} questo viene sostituito con la data di oggi
