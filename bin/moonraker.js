@@ -13,12 +13,20 @@ var features = parser.parseFeatures(config.featuresDir, config.tags, config.lang
 var queues   = createQueues(features, config.threads || 1);
 var failed   = false;
 
-queues.forEach(function(queue, index) {
-  var thread = childProcess.fork('./node_modules/moonraker/lib/env/mocha', process.argv);
-  thread.send({ mocha: true, thread: index + 1, queue: queue });
-  thread.on("exit", function(code) {
-    if (code > 0) failed = true;
-  });
+// TODO: UPDATE CONFIG - config.browser {} -> config.browsers [{}, {}]
+config.browsers.forEach(function (browser) {
+    queues.forEach(function (queue, index) {
+        var thread = childProcess.fork('./node_modules/moonraker/lib/env/mocha', process.argv);
+        thread.send({
+            browser: browser,
+            mocha: true,
+            thread: index + 1,
+            queue: queue
+        });
+        thread.on("exit", function (code) {
+            if (code > 0) failed = true;
+        });
+    });
 });
 
 process.on('exit', function() {

@@ -11,6 +11,7 @@ Integrating [Yadda](https://github.com/acuminous/yadda), [Selenium-Webdriver](ht
 * [Configure](#configure)
 * [Run](#run-your-tests)
 * [Writing Your Tests](#writing-your-tests)
+* [Custom dictionary](#custom-dictionary)
 * [Page Objects](#page-objects)
 * [Components](#components)
 * [Feature Tags](#feature-tags)
@@ -60,12 +61,12 @@ Moonraker is configured using a `config.json` file in your project root:
   "testTimeout": 60000,
   "elementTimeout": 5000,
 
-  "browser": {
+  "browser": [{
     "browserName": "chrome",
     "chromeOptions": {
       "args": ["--no-sandbox"]
     }
-  }
+  }]
 }
 ```
 
@@ -78,7 +79,7 @@ Moonraker is configured using a `config.json` file in your project root:
 * `tags`           - Optional: Comma seperated list of feature tags (more on this [below](#feature-tags)).
 * `testTimeout`    - The maximum test (scenario step) timeout before its marked as a fail (ms). (Default: 60000)
 * `elementTimeout` - The maximum time selenium will continuously try to find an element on the page (ms). (Default: 3000)
-* `browser`        - An object describing your browser [desired capabilities](https://code.google.com/p/selenium/wiki/DesiredCapabilities).*
+* `browsers`       - An array of objects, each one describing your browser [desired capabilities](https://code.google.com/p/selenium/wiki/DesiredCapabilities).*
 * `seleniumServer` - Optional: Address of your remote selenium standalone server.
 * `language`       - Optional: sets the language to use (default: English).
 
@@ -146,6 +147,64 @@ exports.define = function (steps) {
 ```
 
 Although Yadda can support multiple libraries, Moonraker currently loads all step definitions found in your steps directory into one big shared library, just like Cucumber, so you have to be careful of step name clashes.
+
+### Custom dictionary
+
+Yadda supports [examble tables](https://github.com/acuminous/yadda#example-tables "Yadda example tables").
+
+```
+Feature: Visiting the homepage
+
+  Scenario: Site is online in the current country
+
+    Given I visit the home page in [isocode]
+    Then The page is not 404
+
+Where:
+  
+  isocode
+  us
+  it
+```
+
+We can define the step as:
+
+```
+steps.given(/I visit the home page in (\w{2})/, function (isocode) {
+  // ...
+});
+```
+
+If the regular expression we are defining is meant to be used across different steps, it could be useful to extract the regex into an external dictionary file; Yadda natively supports this feature.
+
+This feature could be used through moonraker too; in order to achieve this we have to specify the dictionary file (must be a json) in the config.json using the `dictionaryFile` property. For example:
+
+```
+// config.json
+{
+  ...
+  "dictionaryFile": "tests/dict.json",
+  ...
+}
+```
+
+Then the content of *tests/dict.json* should be something like:
+
+```
+{
+    "NUMBERS": "(\\d+)",
+    "ISOCODE": "(\\w{2})",
+    "ZIPCODEJP": "(\\d{3}-\\d{4})"
+}
+```
+
+Now our step definition can be written as:
+
+```
+steps.given(/I visit the home page in $ISOCODE/, function (isocode) {
+  // ...
+});
+
 
 ### Page objects
 
@@ -330,19 +389,19 @@ Saucelabs:
 ```json
 "seleniumServer": "http://ondemand.saucelabs.com:80/wd/hub",
 
-  "browser": {
+  "browser": [{
     "username": "USERNAME",
     "accessKey": "KEY",
     "browserName": "safari",
     "version": "8.0",
     "platform": "OS X 10.10"
-  }
+  }]
 ```
 Browserstack:
 ```json
 "seleniumServer": "http://hub.browserstack.com/wd/hub",
 
-  "browser": {
+  "browser": [{
     "browserstack.user": "USERNAME",
     "browserstack.key": "KEY",
     "browserName": "Safari",
@@ -350,7 +409,7 @@ Browserstack:
     "os": "OS X",
     "os_version": "Yosemite",
     "resolution": "1920x1080"
-  }
+  }]
 ```
 Note: As you can see in these examples each provider specifies capabilites differently so you will need to refer to your provider documentation:
 
