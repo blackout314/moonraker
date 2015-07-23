@@ -10,6 +10,7 @@ di esempio
   "resultsDir": "results",
   "dictionaryFile": "tests/dict.json",
   "reporter": "moonraker",
+  "reportName": "{{NOW}}report.html",
   "threads": 1,
 
   "testTimeout": 100000,
